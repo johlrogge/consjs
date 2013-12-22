@@ -34,16 +34,18 @@
             return iteration(iterator(initial));
         }
 
-
-        var each = function(nxt, callback) {
-            return when(nxt).done(
+        var each = function(cons, callback, eofCallback) {
+            return when(phloem.next(cons)).done(
                 function(val) {
                     if(val !== phloem.EOF) {
                         callback(phloem.value(val));
-                        each(phloem.next(val), callback);
+                        each(val, callback);
                     }
                     else {
                         callback(phloem.EOF);
+                        if(eofCallback){
+                            eofCallback();
+                        };
                     }
                 }
             )

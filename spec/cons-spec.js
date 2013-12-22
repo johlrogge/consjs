@@ -40,7 +40,9 @@
           'each sends closed event on EOF' : function(){
               var stream = cons.stream();
               var deferred = q.defer();
-              fn.each(stream.read, function(elem){}, function(){deferred.resolve("closed")})
+              fn.each(stream.read, function(elem){
+              }, function(){
+                  deferred.resolve("closed")})
               stream.close();
               return deferred.promise;
           }
