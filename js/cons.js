@@ -45,7 +45,7 @@
                     deferredNext.resolve(EOF);
                 },
                 read: {
-                    open: function(){
+                    next: function(){
                         return nextValue
                     }
                 }

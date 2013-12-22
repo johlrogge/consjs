@@ -1,79 +1,171 @@
 (function(){
-    var fn = function(when, _) {
-        var EOF = {
-            type:"EOF"
+    var streamsFn = function(phloem, when) {
+        var hasMore = function(xs) {
+            return xs !== phloem.EOF;
         }
 
-        EOF.next = function(){return when(EOF)};
+        var take = function(xs, count) {
+            return when(xs).then(
+                function(val) {
+                    return (hasMore(val) && count > 0) ? 
+                        phloem.cons(phloem.value(val), take(phloem.next(val), count-1)) : 
+                        phloem.EOF;
+                });
+        }
 
-        var cons = function(head, tail) {
-            var tail = tail;
-            if (typeof tail === 'function') {
-                return {
-                    value: head, 
-                    next: function(){
-                        return when(tail());
+        var drop = function(xs, count) {
+            return when(xs).then(
+                function(val) {
+                    if (hasMore(val)) {
+                        return count > 0 ? 
+                            drop(phloem.next(val), count -1) : val;
+                    }
+                    return phloem.EOF;
+                });
+        }
+
+        var iterate = function(iterator, initial) {
+            var iteration = function(current) {
+                return phloem.cons(current, 
+                                   function() {
+                                       return when(iteration(iterator(current)));
+                                   });
+            }
+            return iteration(iterator(initial));
+        }
+
+
+        var each = function(nxt, callback) {
+            return when(nxt).done(
+                function(val) {
+                    if(val !== phloem.EOF) {
+                        callback(phloem.value(val));
+                        each(phloem.next(val), callback);
+                    }
+                    else {
+                        callback(phloem.EOF);
                     }
                 }
-            }
+            )
+        }
 
-            return {
-                value:head, 
-                next: function() {
-                    return when(tail || EOF);
+        var flatten = function(stream) {
+            var result = phloem.stream();
+            var res = result.read.next();
+            function iter(outer) {
+                return when(outer).done(
+                    function(val) {
+                        if(val !== phloem.EOF) {
+                            each(phloem.value(val), function(elem){
+                                if(elem !== phloem.EOF) {
+                                    result.push(elem);
+                                }
+                                else {
+                                    iter(phloem.next(val));
+                                }
+                            });
+                        }
+                        else {
+                            result.close();
+                        }
+                    }
+                )
+            }
+            iter(stream);
+            return res;
+        }
+
+
+        var concat = function(stream1, stream2)  {
+            var result = phloem.stream();
+            var res = result.read.next();
+            result.push(stream1);
+            result.push(stream2);
+            result.close();
+            return flatten(res);
+        }
+
+        var map = function(streamin, fn) {
+            var iteration = function(stream) {
+                return when(stream).then(function(resolved) {
+                    if(resolved === phloem.EOF) return resolved;
+                    return phloem.cons(
+                        fn(phloem.value(resolved)), 
+                        function() {
+                            return iteration(phloem.next(resolved));
+                        });
+                });
+            }
+            return iteration(streamin);
+        }
+
+        var flatMap = function(stream, fn) {
+            var flat = map(stream, fn);
+            return flatten(flat);
+        }
+
+        var filter = function(next, condition) {
+            var passed = stream();
+            var rejected = stream();
+            var doMatch = condition;
+            if((typeof condition) != "function") {
+                doMatch = function(val) {
+                    var match = condition.exec(val)
+                    return match && (match.length > 1 ? match.slice(1) : match[0])
                 }
             }
-        };
 
-        var next = function(val){return val.next()};
-        var value =  function(val) {return val.value};
-        var stream = function() {
-            var deferredNext = when.defer();
-            var nextValue = deferredNext.promise;
-            var push = function(value){
-                var old = deferredNext;
-                deferredNext = when.defer();
-                nextValue = old.promise;
-                var result = cons(value, deferredNext.promise);
-                return old.resolve(result);
-            }
-
+            each(next, function(val) {
+                var match = doMatch(val)
+                if(match) {
+                    passed.push(match) 
+                }
+                else {
+                    rejected.push(val);
+                }
+            });
             return {
-                push: push,
-                close: function() {
-                    nextValue = EOF;
-                    deferredNext.resolve(EOF);
-                },
                 read: {
-                    next: function(){
-                        return nextValue
-                    }
+                    next: passed.read.next,
+                    unmatched: rejected.read.next
                 }
-            }
+            };
         }
 
-        var isCons = function(maybeCons) {
-            return maybeCons.value && maybeCons.next ? maybeCons : false;
+        var fold = function(str, fn, initial) {
+            var deferred = when.defer();
+            var acc = initial;
+            each(str, function(value){
+                if(value !== phloem.EOF) {
+                    acc = fn(acc, value);
+                }
+                else  {
+                    deferred.resolve(acc);
+                }
+            });
+            return deferred.promise;
         }
 
         return {
-            isCons:isCons,
-            stream: stream,
-            EOF: EOF,
-            cons: cons,
-            next: next,
-            value: value,
-            log: function(val) {console.log(val); return val}
+            drop: drop,
+            take: take,
+            iterate: iterate,
+            map: map,
+            flatMap:flatMap,
+            flatten:flatten,
+            each: each,
+            fold: fold,
+            concat:concat,
+            filter: filter
         }
+     }
+    if (typeof define !== 'undefined') {
+        return define(['cons', 'q'], streamsFn);
     }
-    if(typeof define !== 'undefined'){
-        return define(['q', 'lodash'], fn);
-    }
-    else if(typeof module !== 'undefined' && module.exports) {
-        module.exports = fn(require('q'), require('lodash'));
+    else if (typeof module !== 'undefined' && module.exports) {
+        module.exports = streamsFn(require('./cons'), require('q'));
     }
     else {
-        window.cons = window.cons || {};
-        window.cons.fn = fn(Q, _);
+        window.cons.fn = streamsFn(window.cons, Q);
     }
 })();
