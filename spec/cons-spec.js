@@ -24,6 +24,25 @@
           ).done();
       };
 
+      function assertStreamIs(stream, expected){
+          var deferred = q.defer();
+          var elements = [];
+          fn.each(stream, 
+                  function(elem){
+                      elements = elements.concat([elem]);
+                  },
+                  function(){
+                      if(!(elements < expected  || elements > expected)) {
+                          deferred.resolve(elements);
+                      }
+                      else {
+                          deferred.reject(elements + " is not equal to "+expected);
+                      }
+                  }
+                 );
+          return deferred.promise;
+      };
+
       run({
           'cons is cons' : function(){
               var val = cons.cons('head', 'tail');
@@ -45,6 +64,15 @@
                   deferred.resolve("closed")})
               stream.close();
               return deferred.promise;
+          },
+          'each iterates through all elements' : function() {
+              var stream = cons.stream();
+              var result = assertStreamIs(stream.read, [1,2,3]);
+              stream.push(1);
+              stream.push(2);
+              stream.push(3);
+              stream.close();
+              return result;
           }
       });
   };

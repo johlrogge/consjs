@@ -39,10 +39,9 @@
                 function(val) {
                     if(val !== phloem.EOF) {
                         callback(phloem.value(val));
-                        each(val, callback);
+                        each(val, callback, eofCallback);
                     }
                     else {
-                        callback(phloem.EOF);
                         if(eofCallback){
                             eofCallback();
                         };
