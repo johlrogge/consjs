@@ -106,8 +106,7 @@
         }
 
         var filter = function(next, condition) {
-            var passed = stream();
-            var rejected = stream();
+            var passed = phloem.stream();
             var doMatch = condition;
             if((typeof condition) != "function") {
                 doMatch = function(val) {
@@ -116,21 +115,16 @@
                 }
             }
 
-            each(next, function(val) {
-                var match = doMatch(val)
-                if(match) {
-                    passed.push(match) 
-                }
-                else {
-                    rejected.push(val);
-                }
-            });
-            return {
-                read: {
-                    next: passed.read.next,
-                    unmatched: rejected.read.next
-                }
-            };
+            each(next, 
+                 function(val) {
+                     var match = doMatch(val)
+                     if(match) {
+                         passed.push(val) 
+                     }
+                 },
+                 passed.close
+                );
+            return passed.read;
         }
 
         var fold = function(str, fn, initial) {

@@ -55,7 +55,10 @@
                   next.then(function(val){return cons.isCons(val) ? q.resolve(val) : q.reject(val)}),
                   next.then(function(val){return cons.value(val) === "first" ? q.resolve(cons.value(val)) : q.reject(cons.value(val))})
               ]);
-          },
+          }
+      });
+
+      run({
           'each sends closed event on EOF' : function(){
               var stream = cons.stream();
               var deferred = q.defer();
@@ -75,6 +78,25 @@
               return result;
           }
       });
+
+      run({
+          'filter filters matching elements' : function(){
+              var stream = cons.stream();
+              var result = assertStreamIs(                  
+                  fn.filter(stream.read,
+                            function(elem){
+                                return elem % 2 === 0;
+                            })
+                  , [2,4]);
+              stream.push(1);
+              stream.push(2);
+              stream.push(3);
+              stream.push(4);
+              stream.push(5);
+              stream.close();
+              return result;
+          }
+      })
   };
 
   if(typeof defined !== 'undefined'){
