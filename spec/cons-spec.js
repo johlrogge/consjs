@@ -79,21 +79,6 @@
           }
       });
 
-      run({
-          'drop drops n elements' : function(){
-              var stream = cons.stream();
-              var result = assertStreamIs(                  
-                  fn.drop(stream.read,2)
-                  , [3,4,5]);
-              stream.push(1);
-              stream.push(2);
-              stream.push(3);
-              stream.push(4);
-              stream.push(5);
-              stream.close();
-              return result;
-          }
-      });
 
       run({
           'take takes n elements' : function(){
@@ -111,23 +96,41 @@
           }
       });
 
+      var incStream = fn.iterate(
+                  function(last){
+                      return last + 1;
+                  },
+                  0);
+
+      run({
+          'iterate builds stream' : function(){
+              var stream = incStream;
+              return assertStreamIs(
+                  fn.take(stream, 5),
+                  [0,1,2,3,4]
+              );
+              
+          }
+      });
+
+      run({
+          'drop drops n elements' : function(){
+              var stream = fn.take(incStream, 5);
+              return assertStreamIs(                  
+                  fn.drop(stream, 2)
+                  , [3,4,5]);
+          }
+      });
 
       run({
           'filter filters matching elements' : function(){
-              var stream = cons.stream();
-              var result = assertStreamIs(                  
-                  fn.filter(stream.read,
+              var stream = fn.take(incStream, 5);
+              return assertStreamIs(                  
+                  fn.filter(stream,
                             function(elem){
                                 return elem % 2 === 0;
                             })
-                  , [2,4]);
-              stream.push(1);
-              stream.push(2);
-              stream.push(3);
-              stream.push(4);
-              stream.push(5);
-              stream.close();
-              return result;
+                  , [0,2,4]);
           }
       })
   };

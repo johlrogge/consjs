@@ -32,7 +32,7 @@
                                        return when(iteration(iterator(current)));
                                    });
             }
-            return iteration(iterator(initial));
+            return {next :function(){return iteration(initial);}};
         }
 
         var each = function(cons, callback, eofCallback) {
