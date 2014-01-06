@@ -25,7 +25,8 @@
             }
         };
 
-        var next = function(val){return val.next()};
+        var next = function(val){
+            return val.next()};
         var value =  function(val) {return val.value};
         var stream = function() {
             var deferredNext = when.defer();

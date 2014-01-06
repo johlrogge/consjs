@@ -14,14 +14,10 @@
         }
 
         var drop = function(xs, count) {
-            return when(xs).then(
-                function(val) {
-                    if (hasMore(val)) {
-                        return count > 0 ? 
-                            drop(phloem.next(val), count -1) : val;
-                    }
-                    return phloem.EOF;
-                });
+            function dropNext(maybeXS, icnt) {
+                return icnt === 0 ? {next: function(){return maybeXS;}} : dropNext(when(maybeXS).then(phloem.next), icnt-1);
+            }
+            return dropNext(phloem.next(xs), count);
         }
 
         var iterate = function(iterator, initial) {
