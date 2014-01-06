@@ -5,19 +5,24 @@
         }
 
         var take = function(xs, count) {
-            return when(xs).then(
-                function(val) {
-                    return (hasMore(val) && count > 0) ? 
-                        phloem.cons(phloem.value(val), take(phloem.next(val), count-1)) : 
-                        phloem.EOF;
-                });
+            function takeNext(maybeXS, icnt) {
+                return icnt !== 0 ? when(maybeXS).then(
+                        function(elem){
+                            return {
+                                value: phloem.value(elem),
+                                next:function(){return takeNext(phloem.next(elem), icnt -1);}
+                            }
+                        }
+                    ) : phloem.EOF;
+            };
+            return {next: function(){return takeNext(phloem.next(xs), count);}};
         }
 
         var drop = function(xs, count) {
             function dropNext(maybeXS, icnt) {
-                return icnt === 0 ? {next: function(){return maybeXS;}} : dropNext(when(maybeXS).then(phloem.next), icnt-1);
+                return icnt === 0 ? maybeXS : dropNext(when(maybeXS).then(phloem.next), icnt-1);
             }
-            return dropNext(phloem.next(xs), count);
+            return {next: function(){return dropNext(phloem.next(xs), count)}};
         }
 
         var iterate = function(iterator, initial) {

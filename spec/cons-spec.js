@@ -95,6 +95,22 @@
           }
       });
 
+      run({
+          'take takes n elements' : function(){
+              var stream = cons.stream();
+              var result = assertStreamIs(                  
+                  fn.take(stream.read,3)
+                  , [1,2,3]);
+              stream.push(1);
+              stream.push(2);
+              stream.push(3);
+              stream.push(4);
+              stream.push(5);
+              stream.close();
+              return result;
+          }
+      });
+
 
       run({
           'filter filters matching elements' : function(){
