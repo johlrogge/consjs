@@ -132,6 +132,16 @@
                             })
                   , [0,2,4]);
           }
+      });
+
+      run({
+          'map creates new stream' : function(){
+              var stream = fn.take(incStream, 5);
+              function double(value){return value *2; };
+              return assertStreamIs(                  
+                  fn.map(stream, double)
+                  , [0,2,4,6,8]);
+          }
       })
   };
 

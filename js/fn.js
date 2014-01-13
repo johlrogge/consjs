@@ -98,7 +98,7 @@
                         });
                 });
             }
-            return iteration(streamin);
+            return { next: function(){return iteration(phloem.next(streamin))}};
         }
 
         var flatMap = function(stream, fn) {
