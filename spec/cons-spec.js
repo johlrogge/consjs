@@ -118,7 +118,7 @@
               var stream = fn.take(incStream, 5);
               return assertStreamIs(                  
                   fn.drop(stream, 2)
-                  , [3,4,5]);
+                  , [2,3,4]);
           }
       });
 

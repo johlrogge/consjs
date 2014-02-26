@@ -20,7 +20,10 @@
 
         var drop = function(xs, count) {
             function dropNext(maybeXS, icnt) {
-                return icnt === 0 ? maybeXS : dropNext(when(maybeXS).then(phloem.next), icnt-1);
+                return icnt === 0 ? maybeXS : 
+                    when(maybeXS).then(function(elem){
+                        return dropNext(phloem.next(elem), icnt-1);
+                    });
             }
             return {next: function(){return dropNext(phloem.next(xs), count)}};
         }
