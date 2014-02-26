@@ -1,6 +1,12 @@
 (function(){
   
   var defmod = function(q, cons, fn, _){
+
+      function tbd() {
+          return q.reject("To be defined");
+      };
+
+
       var run = function(tests){
           var results = _(tests).pairs().map(function(pair){
               return q(q.timeout(pair[1](), 1000)).then(
@@ -142,7 +148,12 @@
                   fn.map(stream, double)
                   , [0,2,4,6,8]);
           }
-      })
+      });
+
+      run({'tests for flatten':tbd});
+      run({'tests for concat':tbd});
+      run({'tests for flatmap':tbd});
+      run({'tests for fold':tbd});
   };
 
   if(typeof defined !== 'undefined'){
