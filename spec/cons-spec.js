@@ -156,13 +156,13 @@
       });
 
       run({
-          'EOF stream flattens to EOF': function() {
+       'EOF stream flattens to EOF': function() {
               return assertStreamIs(
                   fn.flatten(cons.EOF),
                   []
               )
           },
-          'stream with one stream flattens to one stream' : function() {
+       'stream with one stream flattens to one stream' : function() {
               var stream = fn.take(
                   fn.iterate(
                       function(){
@@ -175,7 +175,23 @@
                   fn.flatten(stream),
                   [0,1,2,3,4]
               )
+          },
+          'stream with two streams flattens to one stream' : function() {
+              var stream = fn.take(
+                  fn.iterate(
+                      function(){
+                          var res = fn.take(incStream(), 5);
+                          return res;
+                      },
+                      fn.take(incStream(), 5)), 2);
+
+              return assertStreamIs(
+                  fn.flatten(stream),
+                  [0,1,2,3,4,0,1,2,3,4]
+              )
           }
+
+
       });
       run({'tests for concat':tbd});
       run({'tests for flatmap':tbd});

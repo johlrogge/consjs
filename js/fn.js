@@ -56,26 +56,26 @@
 
         var flatten = function(stream) {
             function iter(outerStream){
-                return when(outerStream).then(function(value) {
-                    if(value === phloem.EOF) {
+                return when(outerStream).then(function(outervalue) {
+                    if(outervalue === phloem.EOF) {
                         return phloem.EOF;
                     }
                     function iterateInner(value) {
                         return when(value).then(function(element){
                             if(element === phloem.EOF) {
-                                return iter(phloem.next(outerStream));
+                                return iter(phloem.next(value));
                             }
                             return phloem.cons(
                                 phloem.value(element), 
                                 function(){
                                     if(phloem.next(element) === phloem.EOF) {
-                                        return phloem.EOF;
+                                        return iter(phloem.next(outervalue));
                                     }
                                     return when(iterateInner(phloem.next(element)));
                                 });
                         });
                     }
-                    return iterateInner(phloem.next( phloem.value(value)));
+                    return iterateInner(phloem.next( phloem.value(outervalue)));
                 });
             }
             return {
