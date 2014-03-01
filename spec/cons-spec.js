@@ -6,6 +6,9 @@
           return q.reject("To be defined");
       };
 
+      function nrun(tests){
+          console.log("ignore: ", tests);
+      };
 
       var run = function(tests){
           var results = _(tests).pairs().map(function(pair){
@@ -102,15 +105,17 @@
           }
       });
 
-      var incStream = fn.iterate(
-                  function(last){
-                      return last + 1;
-                  },
-                  0);
+      var incStream = function() {
+          return fn.iterate(
+              function(last){
+                  return last + 1;
+              },
+              0);
+      };
 
       run({
           'iterate builds stream' : function(){
-              var stream = incStream;
+              var stream = incStream();
               return assertStreamIs(
                   fn.take(stream, 5),
                   [0,1,2,3,4]
@@ -121,7 +126,7 @@
 
       run({
           'drop drops n elements' : function(){
-              var stream = fn.take(incStream, 5);
+              var stream = fn.take(incStream(), 5);
               return assertStreamIs(                  
                   fn.drop(stream, 2)
                   , [2,3,4]);
@@ -130,7 +135,7 @@
 
       run({
           'filter filters matching elements' : function(){
-              var stream = fn.take(incStream, 5);
+              var stream = fn.take(incStream(), 5);
               return assertStreamIs(                  
                   fn.filter(stream,
                             function(elem){
@@ -142,7 +147,7 @@
 
       run({
           'map creates new stream' : function(){
-              var stream = fn.take(incStream, 5);
+              var stream = fn.take(incStream(), 5);
               function double(value){return value *2; };
               return assertStreamIs(                  
                   fn.map(stream, double)
@@ -150,7 +155,28 @@
           }
       });
 
-      run({'tests for flatten':tbd});
+      run({
+          'EOF stream flattens to EOF': function() {
+              return assertStreamIs(
+                  fn.flatten(cons.EOF),
+                  []
+              )
+          },
+          'stream with one stream flattens to one stream' : function() {
+              var stream = fn.take(
+                  fn.iterate(
+                      function(){
+                          var res = fn.take(incStream(), 5);
+                          return res;
+                      },
+                      fn.take(incStream(), 5)), 1);
+
+              return assertStreamIs(
+                  fn.flatten(stream),
+                  [0,1,2,3,4]
+              )
+          }
+      });
       run({'tests for concat':tbd});
       run({'tests for flatmap':tbd});
       run({'tests for fold':tbd});
