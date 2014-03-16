@@ -1,5 +1,5 @@
 (function(){
-    var streamsFn = function(phloem, when) {
+    var streamsFn = function(phloem, when, _) {
         var hasMore = function(xs) {
             return xs !== phloem.EOF;
         }
@@ -86,14 +86,15 @@
 
         }
 
-
-        var concat = function(stream1, stream2)  {
+        var concat = function(stream)  {
             var result = phloem.stream();
-            var res = result.read.next();
-            result.push(stream1);
-            result.push(stream2);
+            var resRO = result.read.next();
+            var args = Array.prototype.valueOf.apply(arguments);
+            _.each(args, function(element){
+                result.push(element);
+            });
             result.close();
-            return flatten(res);
+            return flatten({next:function(){return resRO}});
         }
 
         var map = function(streamin, fn) {
@@ -165,12 +166,12 @@
         }
      }
     if (typeof define !== 'undefined') {
-        return define(['cons', 'q'], streamsFn);
+        return define(['cons', 'q', 'lodash'], streamsFn);
     }
     else if (typeof module !== 'undefined' && module.exports) {
-        module.exports = streamsFn(require('./cons'), require('q'));
+        module.exports = streamsFn(require('./cons'), require('q'), require('lodash'));
     }
     else {
-        window.cons.fn = streamsFn(window.cons, Q);
+        window.cons.fn = streamsFn(window.cons, Q, _);
     }
 })();

@@ -193,7 +193,28 @@
 
 
       });
-      run({'tests for concat':tbd});
+      run({
+          'concat one stream is identical stream' : function() {
+              var stream = fn.take(incStream(), 5);
+              return assertStreamIs(
+                  fn.concat(stream),
+                  [0,1,2,3,4]
+              )
+          }
+      });
+
+      run({
+          'concat two streams makes one stream with elements from both' : function() {
+              var stream1, stream2;
+              stream1 = fn.take(incStream(), 5);
+              stream2 = fn.take(incStream(), 6);
+              return assertStreamIs(
+                  fn.concat(stream1, stream2),
+                  [0,1,2,3,4,0,1,2,3,4,5]
+              )
+          }
+      })
+
       run({'tests for flatmap':tbd});
       run({'tests for fold':tbd});
   };
