@@ -200,10 +200,7 @@
                   fn.concat(stream),
                   [0,1,2,3,4]
               )
-          }
-      });
-
-      run({
+          },
           'concat two streams makes one stream with elements from both' : function() {
               var stream1, stream2;
               stream1 = fn.take(incStream(), 5);
@@ -215,7 +212,28 @@
           }
       })
 
-      run({'tests for flatmap':tbd});
+      run({
+          'flatmap can remove elements' : function() {
+              var stream = fn.take(incStream(), 5);
+              var res = fn.flatMap(stream, function(elem){
+                      return elem % 2 === 0 ? cons.EOF : {next: function(){return cons.cons(elem, cons.EOF)}};
+                  });
+              return assertStreamIs(
+                  res,
+                  [1,3]
+              )
+          },
+          'flatmap can add elements' : function() {
+              var stream = fn.take(incStream(), 5);
+              var res = fn.flatMap(stream, function(elem){
+                      return {next: function(){return cons.cons(elem, cons.cons(elem, cons.EOF))}};
+                  });
+              return assertStreamIs(
+                  res,
+                  [0,0,1,1,2,2,3,3,4,4]
+              )
+          }
+      });
       run({'tests for fold':tbd});
   };
 

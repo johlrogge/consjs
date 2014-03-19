@@ -63,7 +63,7 @@
                     function iterateInner(value) {
                         return when(value).then(function(element){
                             if(element === phloem.EOF) {
-                                return iter(phloem.next(value));
+                                return iter(phloem.next(outervalue));
                             }
                             return phloem.cons(
                                 phloem.value(element), 
@@ -112,8 +112,7 @@
         }
 
         var flatMap = function(stream, fn) {
-            var flat = map(stream, fn);
-            return flatten(flat);
+            return flatten(map(stream, fn));
         }
 
         var filter = function(next, condition) {
