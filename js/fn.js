@@ -1,7 +1,7 @@
 (function(){
-    var streamsFn = function(phloem, when, _) {
+    var streamsFn = function(consjs, when, _) {
         var hasMore = function(xs) {
-            return xs !== phloem.EOF;
+            return xs !== consjs.EOF;
         }
 
         var take = function(xs, count) {
@@ -9,28 +9,28 @@
                 return icnt !== 0 ? when(maybeXS).then(
                         function(elem){
                             return {
-                                value: phloem.value(elem),
-                                next:function(){return takeNext(phloem.next(elem), icnt -1);}
+                                value: consjs.value(elem),
+                                next:function(){return takeNext(consjs.next(elem), icnt -1);}
                             }
                         }
-                    ) : phloem.EOF;
+                    ) : consjs.EOF;
             };
-            return {next: function(){return takeNext(phloem.next(xs), count);}};
+            return {next: function(){return takeNext(consjs.next(xs), count);}};
         }
 
         var drop = function(xs, count) {
             function dropNext(maybeXS, icnt) {
                 return icnt === 0 ? maybeXS : 
                     when(maybeXS).then(function(elem){
-                        return dropNext(phloem.next(elem), icnt-1);
+                        return dropNext(consjs.next(elem), icnt-1);
                     });
             }
-            return {next: function(){return dropNext(phloem.next(xs), count)}};
+            return {next: function(){return dropNext(consjs.next(xs), count)}};
         }
 
         var iterate = function(iterator, initial) {
             var iteration = function(current) {
-                return phloem.cons(current, 
+                return consjs.cons(current, 
                                    function() {
                                        return when(iteration(iterator(current)));
                                    });
@@ -39,10 +39,10 @@
         }
 
         var each = function(cons, callback, eofCallback) {
-            return when(phloem.next(cons)).done(
+            return when(consjs.next(cons)).done(
                 function(val) {
-                    if(val !== phloem.EOF) {
-                        callback(phloem.value(val));
+                    if(val !== consjs.EOF) {
+                        callback(consjs.value(val));
                         each(val, callback, eofCallback);
                     }
                     else {
@@ -57,25 +57,25 @@
         var flatten = function(stream) {
             function iter(outerStream){
                 return when(outerStream).then(function(outervalue) {
-                    if(outervalue === phloem.EOF) {
-                        return phloem.EOF;
+                    if(outervalue === consjs.EOF) {
+                        return consjs.EOF;
                     }
                     function iterateInner(value) {
                         return when(value).then(function(element){
-                            if(element === phloem.EOF) {
-                                return iter(phloem.next(outervalue));
+                            if(element === consjs.EOF) {
+                                return iter(consjs.next(outervalue));
                             }
-                            return phloem.cons(
-                                phloem.value(element), 
+                            return consjs.cons(
+                                consjs.value(element), 
                                 function(){
-                                    if(phloem.next(element) === phloem.EOF) {
-                                        return iter(phloem.next(outervalue));
+                                    if(consjs.next(element) === consjs.EOF) {
+                                        return iter(consjs.next(outervalue));
                                     }
-                                    return when(iterateInner(phloem.next(element)));
+                                    return when(iterateInner(consjs.next(element)));
                                 });
                         });
                     }
-                    return iterateInner(phloem.next( phloem.value(outervalue)));
+                    return iterateInner(consjs.next( consjs.value(outervalue)));
                 });
             }
             return {
@@ -87,7 +87,7 @@
         }
 
         var concat = function(stream)  {
-            var result = phloem.stream();
+            var result = consjs.stream();
             var resRO = result.read.next();
             var args = Array.prototype.valueOf.apply(arguments);
             _.each(args, function(element){
@@ -100,15 +100,15 @@
         var map = function(streamin, fn) {
             var iteration = function(stream) {
                 return when(stream).then(function(resolved) {
-                    if(resolved === phloem.EOF) return resolved;
-                    return phloem.cons(
-                        fn(phloem.value(resolved)), 
+                    if(resolved === consjs.EOF) return resolved;
+                    return consjs.cons(
+                        fn(consjs.value(resolved)), 
                         function() {
-                            return iteration(phloem.next(resolved));
+                            return iteration(consjs.next(resolved));
                         });
                 });
             }
-            return { next: function(){return iteration(phloem.next(streamin))}};
+            return { next: function(){return iteration(consjs.next(streamin))}};
         }
 
         var flatMap = function(stream, fn) {
@@ -116,7 +116,7 @@
         }
 
         var filter = function(next, condition) {
-            var passed = phloem.stream();
+            var passed = consjs.stream();
             var doMatch = condition;
             if((typeof condition) != "function") {
                 doMatch = function(val) {
