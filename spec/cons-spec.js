@@ -52,6 +52,19 @@
           return deferred.promise;
       };
 
+      function assertEqual(actual, expected){
+          var deferred = q.defer();
+          return q.when(actual).then(
+          function(v){
+              if(expected === v) {
+                  return q.resolve(v);
+              }
+              else {
+                  return q.reject(v);
+              }
+          });
+      };
+
       run({
           'cons is cons' : function(){
               var val = cons.cons('head', 'tail');
@@ -234,7 +247,18 @@
               )
           }
       });
-      run({'tests for fold':tbd});
+      run({
+          'fold can aggregate a stream of numbers' : function() {
+              var stream = fn.take(fn.drop(incStream(), 1),5);
+              var res = fn.fold(stream, function(acc, elem){
+                      return acc + elem;
+                  }, 0);
+              return assertEqual(
+                  res,
+                  1+2+3+4+5
+              )
+          }
+      });
   };
 
   if(typeof defined !== 'undefined'){

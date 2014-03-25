@@ -140,14 +140,13 @@
         var fold = function(str, fn, initial) {
             var deferred = when.defer();
             var acc = initial;
-            each(str, function(value){
-                if(value !== phloem.EOF) {
-                    acc = fn(acc, value);
-                }
-                else  {
-                    deferred.resolve(acc);
-                }
-            });
+            each(str, 
+                 function(value){
+                     acc = fn(acc, value);
+                 },
+                 function(){
+                     deferred.resolve(acc);
+                 });
             return deferred.promise;
         }
 
