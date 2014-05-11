@@ -181,7 +181,8 @@
             each: each,
             fold: fold,
             concat:concat,
-            filter: filter
+            filter: filter,
+            forArray: forArray
         }
      }
     if (typeof define !== 'undefined') {
