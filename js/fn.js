@@ -102,9 +102,13 @@
                 if(_.isEmpty(arr)) {
                     return consjs.EOF;
                 }
-                return consjs.cons(_.first(arr), function(){
-                    return when.resolve(forArray(_.rest(arr)));
-                })
+                return when(_.first(arr)).
+                    then(function(resolved){
+                        return consjs.cons(resolved, 
+                                           function(){
+                                               return forArray(_.rest(arr));
+                                           });
+                    });
             }
             return {next: function(){return when.resolve(iter(array))}}
         }
