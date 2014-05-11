@@ -6,12 +6,20 @@
           return q.reject("To be defined");
       };
 
-      function nrun(tests){
+      function run(tests){
           console.log("ignore: ", tests);
       };
 
       var run = function(tests){
-          var results = _(tests).pairs().map(function(pair){
+          var results = _(tests).pairs().filter(
+              function(pair){
+                  if(pair[0].indexOf('//') === 0) {
+                      console.log('deferred: ', pair[0]);
+                      return false;
+                  };
+                  return true;
+              }
+          ).map(function(pair){
               return q(q.timeout(pair[1](), 1000)).then(
                   function(passed) {
                       return Q.resolve({name: pair[0], result: passed});
@@ -175,7 +183,7 @@
                   []
               )
           },
-       'stream with one stream flattens to one stream' : function() {
+          'stream with one stream flattens to one stream' : function() {
               var stream = fn.take(
                   fn.iterate(
                       function(){
@@ -202,6 +210,20 @@
                   fn.flatten(stream),
                   [0,1,2,3,4,0,1,2,3,4]
               )
+          },
+          'stream with two streams, second from promise, flattens to one stream' : function() {
+              var stream = fn.take(
+                  fn.iterate(
+                      function(){
+                          var res = fn.take(incStream(), 5);
+                          return res;
+                      },
+                      {next:function(){return Q(fn.take(incStream(), 5))}}),2);
+
+              return assertStreamIs(
+                  fn.flatten(stream),
+                  [0,1,2,3,4,0,1,2,3,4]
+              )
           }
 
 
@@ -222,6 +244,26 @@
                   fn.concat(stream1, stream2),
                   [0,1,2,3,4,0,1,2,3,4,5]
               )
+          },
+          'concat stream with promise of a stream makes stream from both' : function() {
+              var stream1, stream2;
+              stream1 = fn.take(incStream(), 5);
+              stream2 = Q.resolve(fn.take(incStream(), 6));
+              return assertStreamIs(
+                  fn.concat(stream1, stream2),
+                  [0,1,2,3,4,0,1,2,3,4,5]
+              )
+          },
+
+          'concat three streams makes one stream with elements from all' : function() {
+              var stream1, stream2;
+              stream1 = fn.take(incStream(), 5);
+              stream2 = fn.take(incStream(), 6);
+              stream3 = fn.take(incStream(), 7);
+              return assertStreamIs(
+                  fn.concat(fn.concat(stream1, stream2), stream3),
+                  [0,1,2,3,4,0,1,2,3,4,5,0,1,2,3,4,5,6]
+              )
           }
       })
 
@@ -229,7 +271,7 @@
           'flatmap can remove elements' : function() {
               var stream = fn.take(incStream(), 5);
               var res = fn.flatMap(stream, function(elem){
-                      return elem % 2 === 0 ? cons.EOF : {next: function(){return cons.cons(elem, cons.EOF)}};
+                      return elem % 2 === 0 ? cons.EOF : {next: function(){return Q.resolve(cons.cons(elem, cons.EOF))}};
                   });
               return assertStreamIs(
                   res,
@@ -239,7 +281,7 @@
           'flatmap can add elements' : function() {
               var stream = fn.take(incStream(), 5);
               var res = fn.flatMap(stream, function(elem){
-                      return {next: function(){return cons.cons(elem, cons.cons(elem, cons.EOF))}};
+                      return {next: function(){return Q.resolve(cons.cons(elem, cons.cons(elem, cons.EOF)))}};
                   });
               return assertStreamIs(
                   res,
@@ -257,8 +299,19 @@
                   res,
                   1+2+3+4+5
               )
+          },
+          'fold can aggregate an empty stream' : function() {
+              var stream = cons.EOF;
+              var res = fn.fold(stream, function(acc, elem){
+                      return acc + elem;
+                  }, 0);
+              return assertEqual(
+                  res,
+                  0
+              )
           }
       });
+
   };
 
   if(typeof defined !== 'undefined'){

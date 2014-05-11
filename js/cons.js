@@ -26,8 +26,12 @@
         };
 
         var next = function(val){
-            return val.next()};
-        var value =  function(val) {return val.value};
+            if(!val.next) {
+                console.log(val, " does not have a next");
+            }
+            return val.next();
+        };
+        var value = function(val) {return val.value};
         var stream = function() {
             var deferredNext = when.defer();
             var nextValue = deferredNext.promise;

@@ -54,17 +54,28 @@
             )
         }
 
+        function isHead(stream){
+            return typeof(stream.value) === 'undefined';
+        }
+
         var flatten = function(stream) {
             function iter(outerStream){
                 return when(outerStream).then(function(outervalue) {
                     if(outervalue === consjs.EOF) {
                         return consjs.EOF;
                     }
+                    if(isHead(outervalue)){
+                        return iter(consjs.next(outervalue));
+                    }
                     function iterateInner(value) {
                         return when(value).then(function(element){
                             if(element === consjs.EOF) {
                                 return iter(consjs.next(outervalue));
                             }
+                            if(isHead(element)){
+                                return iterateInner(consjs.next(element));
+                            }
+
                             return consjs.cons(
                                 consjs.value(element), 
                                 function(){
@@ -86,15 +97,21 @@
 
         }
 
-        var concat = function(stream)  {
-            var result = consjs.stream();
-            var resRO = result.read.next();
+        function forArray(array){
+            function iter(arr) {
+                if(_.isEmpty(arr)) {
+                    return consjs.EOF;
+                }
+                return consjs.cons(_.first(arr), function(){
+                    return when.resolve(forArray(_.rest(arr)));
+                })
+            }
+            return {next: function(){return when.resolve(iter(array))}}
+        }
+
+        var concat = function()  {
             var args = Array.prototype.valueOf.apply(arguments);
-            _.each(args, function(element){
-                result.push(element);
-            });
-            result.close();
-            return flatten({next:function(){return resRO}});
+            return flatten(forArray(args));
         }
 
         var map = function(streamin, fn) {
