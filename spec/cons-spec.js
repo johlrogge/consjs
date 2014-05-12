@@ -6,7 +6,7 @@
           return q.reject("To be defined");
       };
 
-      function run(tests){
+      function nrun(tests){
           console.log("ignore: ", tests);
       };
 
@@ -100,11 +100,24 @@
           },
           'each iterates through all elements' : function() {
               var stream = cons.stream();
-              var result = assertStreamIs(stream.read, [1,2,3]);
+              var result = assertStreamIs(stream.read.next(), [1,2,3]);
               stream.push(1);
               stream.push(2);
               stream.push(3);
               stream.close();
+              return result;
+          },
+          'each can start on promise' : function() {
+              var stream = cons.stream();
+              var result = assertStreamIs(stream.read.next(), [1]);
+              var streamfromPromise = q.resolve(cons.cons('1', cons.EOF));
+              fn.each(streamfromPromise, 
+                     function(elem){
+                         stream.push(elem);
+                     },
+                     function(){
+                         stream.close();
+                     });
               return result;
           }
       });
@@ -114,7 +127,7 @@
           'take takes n elements' : function(){
               var stream = cons.stream();
               var result = assertStreamIs(                  
-                  fn.take(stream.read,3)
+                  fn.take(stream.read.next(),3)
                   , [1,2,3]);
               stream.push(1);
               stream.push(2);

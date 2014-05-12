@@ -8,6 +8,9 @@
             function takeNext(maybeXS, icnt) {
                 return icnt !== 0 ? when(maybeXS).then(
                         function(elem){
+                            if(isHead(elem)){
+                                return takeNext(consjs.next(elem), icnt);
+                            }
                             return {
                                 value: consjs.value(elem),
                                 next:function(){return takeNext(consjs.next(elem), icnt -1);}
@@ -15,7 +18,8 @@
                         }
                     ) : consjs.EOF;
             };
-            return {next: function(){return takeNext(consjs.next(xs), count);}};
+            
+            return {next: function(){return takeNext(xs, count);}};
         }
 
         var drop = function(xs, count) {
@@ -39,20 +43,25 @@
         }
 
         var each = function(cons, callback, eofCallback) {
-            return when(consjs.next(cons)).done(
-                function(val) {
-                    if(val !== consjs.EOF) {
-                        callback(consjs.value(val));
-                        each(val, callback, eofCallback);
-                    }
-                    else {
+
+            return when(cons).done(
+                function(resolved){
+                    if(resolved === consjs.EOF) {
                         if(eofCallback){
-                            eofCallback();
-                        };
+                            return eofCallback();
+                        }
+                        return consjs.EOF;
                     }
-                }
-            )
+
+                    if(isHead(resolved)) {
+                        return each(consjs.next(resolved), callback, eofCallback);
+                    }
+
+                    callback(consjs.value(resolved));
+                    each(consjs.next(resolved), callback, eofCallback);
+                });
         }
+
 
         function isHead(stream){
             return typeof(stream.value) === 'undefined';

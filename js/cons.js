@@ -26,11 +26,14 @@
         };
 
         var next = function(val){
-            if(!val.next) {
-                console.log(val, " does not have a next");
-            }
-            return val.next();
+            return when(val).then(function(resolved){
+                if(!resolved.next) {
+                    console.log(resolved, " does not have a next");
+                }
+                return resolved.next();
+            })
         };
+
         var value = function(val) {return val.value};
         var stream = function() {
             var deferredNext = when.defer();
@@ -58,7 +61,7 @@
         }
 
         var isCons = function(maybeCons) {
-            return maybeCons.value && maybeCons.next ? maybeCons : false;
+            return maybeCons && maybeCons.next ? maybeCons : false;
         }
 
         return {
