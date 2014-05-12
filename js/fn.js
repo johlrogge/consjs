@@ -130,7 +130,7 @@
                     then(function(resolved){
                         return consjs.cons(resolved, 
                                            function(){
-                                               return forArray(_.rest(arr));
+                                               return iter(_.rest(arr));
                                            });
                     });
             }

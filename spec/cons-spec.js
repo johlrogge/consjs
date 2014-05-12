@@ -77,7 +77,7 @@
           });
       };
 
-      nrun({
+      run({
           'cons is cons' : function(){
               var val = cons.cons('head', 'tail');
               return cons.isCons(val) ? q.resolve(val) : q.reject(val + " is not a cons") },
@@ -92,7 +92,7 @@
           }
       });
 
-      nrun({
+      run({
           'each sends closed event on EOF' : function(){
               var stream = cons.stream();
               var deferred = q.defer();
@@ -127,7 +127,7 @@
       });
 
 
-      nrun({
+      run({
           'take takes n elements' : function(){
               var stream = cons.stream();
               var result = assertStreamIs(                  
@@ -151,7 +151,7 @@
               0);
       };
 
-      nrun({
+      run({
           'iterate builds stream' : function(){
               var stream = incStream();
               return assertStreamIs(
@@ -162,7 +162,7 @@
           }
       });
 
-      nrun({
+      run({
           'drop drops n elements' : function(){
               var stream = fn.take(incStream(), 5);
               return assertStreamIs(                  
@@ -171,7 +171,7 @@
           }
       });
 
-      nrun({
+      run({
           'filter filters matching elements' : function(){
               var stream = fn.take(incStream(), 5);
               return assertStreamIs(                  
@@ -191,7 +191,7 @@
       });
 
       function double(value){return value *2; };      
-      nrun({
+      run({
           '//map creates new stream' : function(){
               var stream = fn.take(incStream(), 5);
               return assertStreamIs(                  
@@ -206,7 +206,7 @@
           }
       });
 
-      nrun({
+      run({
        'EOF stream flattens to EOF': function() {
               return assertStreamIs(
                   fn.flatten(cons.EOF),
@@ -258,7 +258,7 @@
 
 
       });
-      nrun({
+      run({
           'concat one stream is identical stream' : function() {
               var stream = fn.take(incStream(), 5);
               return assertStreamIs(
@@ -297,7 +297,7 @@
           }
       })
 
-      nrun({
+      run({
           'flatmap can remove elements' : function() {
               var stream = fn.take(incStream(), 5);
               var res = fn.flatMap(stream, function(elem){
@@ -319,7 +319,7 @@
               )
           }
       });
-      nrun({
+      run({
           'fold can aggregate a stream of numbers' : function() {
               var stream = fn.take(fn.drop(incStream(), 1),5);
               var res = fn.fold(stream, function(acc, elem){
