@@ -42,8 +42,23 @@
             return {next :function(){return iteration(initial);}};
         }
 
-        var each = function(cons, callback, eofCallback) {
+        function seekToValue(cons){
+            return when(cons).then(
+                function(resolved){
+                    if(resolved === consjs.EOF) {
+                        console.log("eof ");
+                        return consjs.EOF;
+                    }
 
+                    if(isHead(resolved)) {
+                        return seekToValue(consjs.next(resolved));
+                    }
+                    
+                    return resolved;
+                });
+        }
+
+        function each(cons, callback, eofCallback) {
             return when(cons).done(
                 function(resolved){
                     if(resolved === consjs.EOF) {
@@ -130,6 +145,8 @@
         var map = function(streamin, fn) {
             var iteration = function(stream) {
                 return when(stream).then(function(resolved) {
+                    console.log("resolved ", resolved);
+
                     if(resolved === consjs.EOF) return resolved;
                     return consjs.cons(
                         fn(consjs.value(resolved)), 
@@ -191,7 +208,8 @@
             fold: fold,
             concat:concat,
             filter: filter,
-            forArray: forArray
+            forArray: forArray,
+            seekToValue: seekToValue
         }
      }
     if (typeof define !== 'undefined') {
