@@ -45,7 +45,7 @@
           var deferred = q.defer();
           var elements = [];
           function iterate(c){
-              Q(c).then(
+              q(c).then(
                   function(resolved){
                       if(resolved == cons.EOF) {
                           if(!(elements < expected  || elements > expected)) {
@@ -159,6 +159,17 @@
                   [0,1,2,3,4]
               );
               
+          },
+          'iterate resolves promises' : function(){
+              var stream = fn.iterate(
+                  function(last){
+                      return q(last).then(function(a){return a + 1});
+                  }, 
+                  q(0));
+              return assertStreamIs(
+                  fn.take(stream, 5),
+                  [0,1,2,3,4]
+              );
           }
       });
 
@@ -192,7 +203,7 @@
 
       function double(value){return value *2; };      
       run({
-          '//map creates new stream' : function(){
+          'map creates new stream' : function(){
               var stream = fn.take(incStream(), 5);
               return assertStreamIs(                  
                   fn.map(stream, double)
@@ -259,11 +270,24 @@
 
       });
       run({
-          'concat one stream is identical stream' : function() {
+          '//concat one stream is identical stream' : function() {
               var stream = fn.take(incStream(), 5);
               return assertStreamIs(
                   fn.concat(stream),
                   [0,1,2,3,4]
+              )
+          },
+          'concat EOF to one stream is identical stream' : function() {
+              var stream = fn.take(incStream(), 5);
+              return assertStreamIs(
+                  fn.concat(cons.EOF, stream),
+                  [0,1,2,3,4]
+              )
+          },
+          'concat EOF to one cons is identical stream' : function() {
+              return assertStreamIs(
+                  fn.concat(cons.EOF, cons.cons(1, cons.EOF)),
+                  [1]
               )
           },
           'concat two streams makes one stream with elements from both' : function() {

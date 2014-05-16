@@ -29,24 +29,30 @@
                         return dropNext(consjs.next(elem), icnt-1);
                     });
             }
-            return {next: function(){return dropNext(consjs.next(xs), count)}};
+            return {next: function(){return dropNext(seekToValue(xs), count)}};
         }
 
         var iterate = function(iterator, initial) {
             var iteration = function(current) {
-                return consjs.cons(current, 
-                                   function() {
-                                       return when(iteration(iterator(current)));
-                                   });
+                return when(current).then(
+                    function(resolved){
+                        return consjs.cons(
+                            resolved,
+                            function(){
+                                return iteration(iterator(resolved))}
+                        );
+                    },
+                function(error){
+                    console.log("error ", error);
+                });
             }
-            return {next :function(){return iteration(initial);}};
+            return {next: function(){return iteration(initial)}};
         }
 
         function seekToValue(cons){
             return when(cons).then(
                 function(resolved){
                     if(resolved === consjs.EOF) {
-                        console.log("eof ");
                         return consjs.EOF;
                     }
 
@@ -91,6 +97,7 @@
                     if(isHead(outervalue)){
                         return iter(consjs.next(outervalue));
                     }
+
                     function iterateInner(value) {
                         return when(value).then(function(element){
                             if(element === consjs.EOF) {
@@ -110,12 +117,12 @@
                                 });
                         });
                     }
-                    return iterateInner(consjs.next( consjs.value(outervalue)));
+                    return iterateInner(seekToValue( consjs.value(outervalue)));
                 });
             }
             return {
                 next: function(){
-                    return iter(stream.next());
+                    return iter(seekToValue(stream));
                 }
             }
 
@@ -145,8 +152,6 @@
         var map = function(streamin, fn) {
             var iteration = function(stream) {
                 return when(stream).then(function(resolved) {
-                    console.log("resolved ", resolved);
-
                     if(resolved === consjs.EOF) return resolved;
                     return consjs.cons(
                         fn(consjs.value(resolved)), 
