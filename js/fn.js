@@ -120,12 +120,7 @@
                     return iterateInner(seekToValue( consjs.value(outervalue)));
                 });
             }
-            return {
-                next: function(){
-                    return iter(seekToValue(stream));
-                }
-            }
-
+            return iter(seekToValue(stream));
         }
 
         function forArray(array){
