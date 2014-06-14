@@ -2,7 +2,7 @@
   "name": "consjs",
   "version": "0.0.0",
   "description": "Cons goes JS",
-  "main": "index.js",
+  "main": "consjs.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,7 +11,8 @@
     "url": "git://github.com/johlrogge/consjs.git"
   },
   "keywords": [
-    "cons"
+    "cons",
+    "streams"
   ],
   "author": "Joakim Ohlrogge",
   "license": "BSD-2-Clause",
