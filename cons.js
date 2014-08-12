@@ -4,7 +4,10 @@
             type:"EOF"
         }
 
-        EOF.next = function(){return when(EOF)};
+        EOF.next = function(){return when.reject("EOF")};
+        function isEOF(cons){
+            return cons && cons.type === "EOF";
+        };
 
         var cons = function(head, tail) {
             var tail = tail;
@@ -67,6 +70,7 @@
         return {
             isCons:isCons,
             stream: stream,
+            isEOF:isEOF,
             EOF: EOF,
             cons: cons,
             next: next,

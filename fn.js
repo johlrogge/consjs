@@ -67,7 +67,7 @@
         function each(cons, callback, eofCallback) {
             return when(cons).done(
                 function(resolved){
-                    if(resolved === consjs.EOF) {
+                    (if consjs.isEOF(resolved)) {
                         if(eofCallback){
                             return eofCallback();
                         }
