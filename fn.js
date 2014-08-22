@@ -67,7 +67,7 @@
         function each(cons, callback, eofCallback) {
             return when(cons).done(
                 function(resolved){
-                    (if consjs.isEOF(resolved)) {
+                    if (consjs.isEOF(resolved)) {
                         if(eofCallback){
                             return eofCallback();
                         }
@@ -155,7 +155,7 @@
                         });
                 });
             }
-            return { next: function(){return iteration(consjs.next(streamin))}};
+            return { next: function(){return iteration(seekToValue(streamin))}};
         }
 
         var flatMap = function(stream, fn) {
