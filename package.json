@@ -1,6 +1,6 @@
 {
   "name": "consjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Cons goes JS",
   "main": "cons.js",
   "scripts": {
