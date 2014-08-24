@@ -65,7 +65,7 @@
         }
 
         function each(cons, callback, eofCallback) {
-            return when(cons).done(
+            return when(seekToValue(cons)).done(
                 function(resolved){
                     if (consjs.isEOF(resolved)) {
                         if(eofCallback){
@@ -74,10 +74,7 @@
                         return consjs.EOF;
                     }
 
-                    if(isHead(resolved)) {
-                        return each(consjs.next(resolved), callback, eofCallback);
-                    }
-
+                    
                     callback(consjs.value(resolved));
                     each(consjs.next(resolved), callback, eofCallback);
                 });
@@ -124,6 +121,9 @@
         }
 
         function forArray(array){
+            if(!_.isArray(array)){
+                throw ("Argument is not an array (was "+array+")");
+            }
             function iter(arr) {
                 if(_.isEmpty(arr)) {
                     return consjs.EOF;
@@ -140,7 +140,7 @@
         }
 
         var concat = function()  {
-            var args = Array.prototype.valueOf.apply(arguments);
+            var args = _(arguments).toArray().value();
             return flatten(forArray(args));
         }
 
