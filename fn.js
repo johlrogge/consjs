@@ -52,7 +52,7 @@
         function seekToValue(cons){
             return when(cons).then(
                 function(resolved){
-                    if(resolved === consjs.EOF) {
+                    if(consjs.isEOF(resolved)) {
                         return consjs.EOF;
                     }
 
