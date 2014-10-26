@@ -40,7 +40,10 @@
               }
           ).done();
       };
-
+      function skip (test){
+          console.log("Skipping ", test);
+      }
+      
       function assertStreamIs(stream, expected){
           var deferred = q.defer();
           var elements = [];
@@ -363,6 +366,22 @@
                   res,
                   0
               )
+          }
+      });
+      run({
+          'join reads elements from two streams' : function(){
+              var stream1 = cons.stream();
+              var stream2 = cons.stream();
+              var streamTotal = fn.join(stream1.read.next(), stream2.read.next());
+              var res = assertStreamIs(
+                  streamTotal,
+                  ["1", "2", "3"]);
+              stream1.push("1");
+              stream2.push("2");
+              stream1.push("3");
+              stream1.close();
+              stream2.close();
+              return res;
           }
       });
 

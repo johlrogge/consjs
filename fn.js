@@ -196,8 +196,30 @@
                  });
             return deferred.promise;
         }
+        
+        function join (stream1, stream2) {
+            var result = consjs.stream();
+            var open = 2;
+            function closeWhenDone(){
+                open = open -1;
+                if(open === 0) {
+                    result.close();
+                }
+            };
+            function pushValue(value){
+                result.push(value);
+            }
+            each(stream1, 
+                 pushValue,
+                 closeWhenDone);
+            each(stream2,
+                 pushValue,
+                 closeWhenDone);
+            return result.read;
+        };
 
         return {
+            join: join,
             drop: drop,
             take: take,
             iterate: iterate,
