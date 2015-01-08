@@ -218,8 +218,34 @@
             return result.read;
         };
 
+        function joinAsObject(streams, initial) {
+            var current = initial;
+            var openStreams = 0;
+            var result = consjs.stream();
+            result.push(initial);
+
+            _(streams).pairs().map(function(pair){
+                each(pair[1],
+                     function(value){
+                         openStreams = openStreams + 1;
+                         current = _.cloneDeep(current);
+                         current[pair[0]] = value;
+                         result.push(current);
+                     },
+                     function(eof){
+                         openStreams = openStreams - 1;
+                         if (openStreams === 0) {
+                             result.close();
+                         }
+                     });
+            });
+            
+            return result.read;
+        }
+        
         return {
             join: join,
+            joinAsObject: joinAsObject,
             drop: drop,
             take: take,
             iterate: iterate,
@@ -235,7 +261,7 @@
         }
      }
     if (typeof define !== 'undefined') {
-        return define(['cons', 'q', 'lodash'], streamsFn);
+        return define(['consjs', 'q', 'lodash'], streamsFn);
     }
     else if (typeof module !== 'undefined' && module.exports) {
         module.exports = streamsFn(require('./cons'), require('q'), require('lodash'));

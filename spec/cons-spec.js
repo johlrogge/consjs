@@ -43,6 +43,16 @@
       function skip (test){
           console.log("Skipping ", test);
       }
+
+      function describe(item) {
+          if (_.isArray(item)) {
+              return '['+_.map(item, describe).join(', ')+']';
+          }
+          else if(_.isObject(item)) {
+              return '{'+_(item).pairs().map(function(pair){return pair[0]+describe(pair[1])}).join(', ')+'}';
+          }
+          return item;
+      };
       
       function assertStreamIs(stream, expected){
           var deferred = q.defer();
@@ -55,7 +65,7 @@
                               return deferred.resolve(elements);
                           }
                           else {
-                              return deferred.reject(elements + " is not equal to "+expected);
+                              return deferred.reject(describe(elements) + " is not equal to "+describe(expected));
                           }
                       }        
                       elements = elements.concat([resolved.value]);
@@ -381,6 +391,30 @@
               stream1.push("3");
               stream1.close();
               stream2.close();
+              return res;
+          }
+      });
+      run({
+          'joinAsObject updates object stream from several streams' : function() {
+              var nameStream = fn.forArray(["Bob"]);
+              var greetingStream = fn.forArray(["Hello"]);
+              var objectStream = fn.joinAsObject(
+                  {
+                      name: nameStream,
+                      greeting: greetingStream
+                  },
+                  {
+                      name: 'stranger',
+                      greeting: 'wazzup'
+                  });
+
+              var res = assertStreamIs(
+                  objectStream,
+                  [
+                      {name: 'stranger', greeting: 'wazzup'},
+                      {name: 'Bob', greeting: 'wazzup'},
+                      {name: 'Bob', greeting: 'Hello'}
+                  ]);
               return res;
           }
       });
