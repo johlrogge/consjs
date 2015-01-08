@@ -418,7 +418,18 @@
               return res;
           }
       });
-
+      run({
+          'incrementalFold works as fold but emits each step' : function() {
+              var numbersToFold = fn.forArray([1, 2, 3, 4, 5]);
+              var foldedStream = fn.incrementalFold(
+                  numbersToFold,
+                  function(acc, element){return acc + element},
+                  11);
+              return assertStreamIs(
+                  foldedStream,
+                  [12, 14, 17, 21, 26]);
+          }
+      })
   };
 
   if(typeof defined !== 'undefined'){

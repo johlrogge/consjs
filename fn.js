@@ -242,6 +242,13 @@
             
             return result.read;
         }
+
+        function incrementalFold(stream, fn, initial) {
+            var acc = initial;
+            return map(stream, function(current){
+                return acc = fn(acc, current);
+            })
+        }
         
         return {
             join: join,
@@ -252,6 +259,7 @@
             map: map,
             flatMap:flatMap,
             flatten:flatten,
+            incrementalFold,
             each: each,
             fold: fold,
             concat:concat,
