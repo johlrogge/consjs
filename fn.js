@@ -259,7 +259,7 @@
             map: map,
             flatMap:flatMap,
             flatten:flatten,
-            incrementalFold,
+            incrementalFold: incrementalFold,
             each: each,
             fold: fold,
             concat:concat,
